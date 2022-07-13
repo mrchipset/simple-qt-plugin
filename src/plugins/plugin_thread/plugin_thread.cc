@@ -1,7 +1,8 @@
 #include "plugin_thread.h"
 #include <numeric>
 
-PluginThread::PluginThread(QObject* parent) : QThread(parent)
+PluginThread::PluginThread(QObject* parent) : QThread(parent),
+    mResultOk(false)
 {
 
 }
@@ -23,20 +24,28 @@ void PluginThread::sum(const QVector<double>& arr, double& sum)
 
 void PluginThread::sum_async(const QVector<double>& arr)
 {
+    if(isRunning()) {
+        return;
+    }
 
+    mArrBuffer = arr;
+    mResultOk = false;
+    start();
 }
 
 bool PluginThread::isSumOk()
 {
-    return true;
+    return mResultOk;
 }
 
 double PluginThread::getAsyncSum()
 {
-    return 0.0;
+    return mResult;
 }
 
 void PluginThread::run()
 {
-
+    QThread::msleep(1000);
+    mResult = std::accumulate(mArrBuffer.begin(), mArrBuffer.end(), 0.0);
+    mResultOk = true;
 }

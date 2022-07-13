@@ -4,6 +4,7 @@
 #include <QPluginLoader>
 #include <QDir>
 #include <QDebug>
+#include <QTimer>
 
 #include "thread_interface.h"
 #include "widget_interface.h"
@@ -56,7 +57,22 @@ int main(int argc, char** argv) {
         QLabel* pLabel = widgetInterface->CreateQLabel(&window);
         pLabel->setText(QObject::tr("Hello, Widget Interface"));
         window.setCentralWidget(pLabel);
+        QTimer* timer = new QTimer(pLabel);
+        timer->setInterval(10);
+        timer->start();
+        threadInterface->sum_async({1, 2, 3, 4, 5});
+        QObject::connect(timer, &QTimer::timeout, [&](){
+            if (threadInterface->isSumOk()) {
+                pLabel->setText(QString("Result is: %1").arg(threadInterface->getAsyncSum()));
+                timer->stop();
+            } else 
+            {
+                pLabel->setText(QObject::tr("Result is on the way..."));
+            }
+        });
     }
+
+
     window.resize(640, 480);
     window.show();
     return app.exec();
